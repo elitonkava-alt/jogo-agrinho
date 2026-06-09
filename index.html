@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cinzas da Sanidade</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Arial', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      background: #111;
+      color: #ddd;
+    }
+
+    #background {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.65) contrast(1.1) saturate(0.7);
+      z-index: 1;
+    }
+
+    .overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.4),
+        rgba(20, 20, 20, 0.85)
+      );
+      z-index: 2;
+    }
+
+    .container {
+      position: relative;
+      z-index: 3;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+
+    h1 {
+      font-size: 4.5rem;
+      margin-bottom: 2rem;
+      text-shadow: 
+        0 0 10px #000,
+        0 0 20px #330000,
+        3px 3px 0 #000;
+      color: #ddd;
+      letter-spacing: 4px;
+      font-weight: bold;
+    }
+
+    .subtitle {
+      font-size: 1.4rem;
+      margin-bottom: 4rem;
+      opacity: 0.9;
+      letter-spacing: 2px;
+      color: #aaa;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      width: 320px;
+    }
+
+    .menu button {
+      padding: 18px 40px;
+      font-size: 1.5rem;
+      background: rgba(40, 40, 40, 0.9);
+      color: #ddd;
+      border: 2px solid #555;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      font-weight: bold;
+    }
+
+    .menu button:hover {
+      background: #222;
+      border-color: #f44;
+      color: #fff;
+      transform: scale(1.05);
+      box-shadow: 0 0 20px rgba(255, 60, 60, 0.6);
+    }
+
+    .footer {
+      position: absolute;
+      bottom: 30px;
+      font-size: 1rem;
+      opacity: 0.6;
+    }
+
+    /* Efeito de cinzas caindo */
+    .ash {
+      position: absolute;
+      top: -20px;
+      width: 4px;
+      height: 4px;
+      background: #ddd;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: fall linear infinite;
+      z-index: 2;
+    }
+
+    @keyframes fall {
+      to {
+        transform: translateY(110vh);
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Imagem de fundo -->
+  <div id="background"></div>
+  <div class="overlay"></div>
+
+  <div class="container">
+    <h1>CINZAS DA SANIDADE</h1>
+    <p class="subtitle">Um passeio pela destruição da alma</p>
+
+    <div class="menu">
+      <button onclick="startGame()">INICIAR</button>
+      <button onclick="showSettings()">CONFIGURAÇÕES</button>
+      <button onclick="showCredits()">REFERÊNCIAS</button>
+    </div>
+  </div>
+
+  <div class="footer">
+    Uma jornada sombria • Walk Simulator + Terror Psicológico
+  </div>
+
+  <script>
+    // Background devastado (floresta morta com céu cinza)
+    document.getElementById('background').style.backgroundImage = 
+      "url('https://picsum.photos/id/1015/1920/1080')"; // Imagem placeholder (floresta devastada)
+
+    // Gerar partículas de cinzas
+    function createAsh() {
+      const ash = document.createElement('div');
+      ash.classList.add('ash');
+      ash.style.left = Math.random() * 100 + 'vw';
+      ash.style.animationDuration = (Math.random() * 8 + 6) + 's';
+      ash.style.opacity = Math.random() * 0.6 + 0.3;
+      ash.style.width = ash.style.height = (Math.random() * 4 + 2) + 'px';
+      document.body.appendChild(ash);
+
+      setTimeout(() => ash.remove(), 15000);
+    }
+
+    setInterval(createAsh, 80);
+
+    // Funções dos botões
+    function startGame() {
+      alert("🚶 Iniciando o jogo...\n\n(Aqui você pode redirecionar para o game.js ou outra página)");
+      // window.location.href = "game.html"; // descomente quando tiver o jogo
+    }
+
+    function showSettings() {
+      alert("⚙️ Configurações\n\n• Volume\n• Sensibilidade do Mouse\n• Qualidade Gráfica\n• Legendas");
+    }
+
+    function showCredits() {
+      alert("📜 REFERÊNCIAS\n\nDesenvolvido como demonstração.\n\nInspirado em:\n• Darkwood\n• Pathologic\n• The Stanley Parable\n\nMúsica e atmosfera: Ambient horror");
+    }
+
+    // Efeito de batimento sutil no título
+    let title = document.querySelector('h1');
+    setInterval(() => {
+      title.style.transform = 'scale(1.02)';
+      setTimeout(() => title.style.transform = 'scale(1)', 200);
+    }, 3000);
+  </script>
+</body>
+</html>
