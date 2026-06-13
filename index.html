@@ -3,195 +3,183 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Cinzas da Sanidade</title>
+  <title>Cinzas da Sanidade - Jogo</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
-    body {
-      font-family: 'Arial', sans-serif;
-      overflow: hidden;
-      height: 100vh;
-      background: #111;
+    body { 
+      margin:0; 
+      overflow:hidden; 
+      background:#0a0a05; 
+      font-family: 'Courier New', monospace; 
       color: #ddd;
     }
-
-    #background {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background-size: cover;
-      background-position: center;
-      filter: brightness(0.65) contrast(1.1) saturate(0.7);
-      z-index: 1;
-    }
-
-    .overlay {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(
-        to bottom,
-        rgba(0, 0, 0, 0.4),
-        rgba(20, 20, 20, 0.85)
-      );
-      z-index: 2;
-    }
-
-    .container {
-      position: relative;
-      z-index: 3;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
+    
+    #intro {
+      position: absolute; 
+      top: 0; left: 0; 
+      width: 100%; height: 100%;
+      background: #111; 
+      display: flex; 
+      align-items: center; 
       justify-content: center;
-      align-items: center;
+      flex-direction: column; 
+      z-index: 100; 
+      padding: 40px;
       text-align: center;
     }
 
-    h1 {
-      font-size: 4.5rem;
-      margin-bottom: 2rem;
-      text-shadow: 
-        0 0 10px #000,
-        0 0 20px #330000,
-        3px 3px 0 #000;
-      color: #ddd;
-      letter-spacing: 4px;
-      font-weight: bold;
+    #intro-text {
+      max-width: 720px;
+      line-height: 1.8;
+      font-size: 1.35rem;
+      min-height: 280px;
     }
 
-    .subtitle {
-      font-size: 1.4rem;
-      margin-bottom: 4rem;
-      opacity: 0.9;
-      letter-spacing: 2px;
-      color: #aaa;
+    #game { display: none; }
+
+    canvas { 
+      image-rendering: pixelated; 
+      border: 4px solid #222; 
+      display: block; 
+      margin: 0 auto;
     }
 
-    .menu {
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-      width: 320px;
-    }
-
-    .menu button {
-      padding: 18px 40px;
-      font-size: 1.5rem;
-      background: rgba(40, 40, 40, 0.9);
-      color: #ddd;
-      border: 2px solid #555;
-      cursor: pointer;
-      transition: all 0.3s;
-      text-transform: uppercase;
-      letter-spacing: 2px;
-      font-weight: bold;
-    }
-
-    .menu button:hover {
-      background: #222;
-      border-color: #f44;
-      color: #fff;
-      transform: scale(1.05);
-      box-shadow: 0 0 20px rgba(255, 60, 60, 0.6);
-    }
-
-    .footer {
+    #life-container {
       position: absolute;
-      bottom: 30px;
-      font-size: 1rem;
-      opacity: 0.6;
-    }
-
-    /* Efeito de cinzas caindo */
-    .ash {
-      position: absolute;
-      top: -20px;
-      width: 4px;
-      height: 4px;
-      background: #ddd;
-      border-radius: 50%;
-      opacity: 0.6;
-      animation: fall linear infinite;
-      z-index: 2;
-    }
-
-    @keyframes fall {
-      to {
-        transform: translateY(110vh);
-      }
+      top: 25px;
+      left: 25px;
+      z-index: 10;
+      font-size: 2.2rem;
+      transition: transform 0.4s;
     }
   </style>
 </head>
 <body>
 
-  <!-- Imagem de fundo -->
-  <div id="background"></div>
-  <div class="overlay"></div>
-
-  <div class="container">
-    <h1>CINZAS DA SANIDADE</h1>
-    <p class="subtitle">Um passeio pela destruição da alma</p>
-
-    <div class="menu">
-      <button onclick="startGame()">INICIAR</button>
-      <button onclick="showSettings()">CONFIGURAÇÕES</button>
-      <button onclick="showCredits()">REFERÊNCIAS</button>
-    </div>
+  <!-- INTRODUÇÃO -->
+  <div id="intro">
+    <h2 style="color:#f66; margin-bottom:40px;">Capítulo 1 - As Cinzas</h2>
+    <div id="intro-text"></div>
+    
+    <button onclick="skipIntro()" style="margin-top:40px; padding:12px 40px; font-size:1.2rem; background:#300; border:2px solid #f44; color:white; cursor:pointer;">
+      PULAR
+    </button>
   </div>
 
-  <div class="footer">
-    Uma jornada sombria • Walk Simulator + Terror Psicológico
+  <!-- JOGO -->
+  <div id="game">
+    <div id="life-container">❤️</div>
+    <canvas id="canvas" width="800" height="600"></canvas>
   </div>
 
   <script>
-    // Background devastado (floresta morta com céu cinza)
-    document.getElementById('background').style.backgroundImage = 
-      "url('https://images.unsplash.com/photo-1567448903605-08e79b3ed079?q=80&w=1332&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D')"; // Imagem placeholder (floresta devastada)
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let playerX = 400, playerY = 300;
+    let gameRunning = false;
+    let heartPulse = 1;
 
-    // Gerar partículas de cinzas
-    function createAsh() {
-      const ash = document.createElement('div');
-      ash.classList.add('ash');
-      ash.style.left = Math.random() * 100 + 'vw';
-      ash.style.animationDuration = (Math.random() * 8 + 6) + 's';
-      ash.style.opacity = Math.random() * 0.6 + 0.3;
-      ash.style.width = ash.style.height = (Math.random() * 4 + 2) + 'px';
-      document.body.appendChild(ash);
+    // ==================== TEXTO DA INTRO ====================
+    const introText = `O mundo acabou não com fogo ou água, mas com silêncio.
 
-      setTimeout(() => ash.remove(), 15000);
+Você caminha por florestas mortas, céus cinzentos de fuligem e terra rachada.
+
+Sua lanterna é a única luz que resta.
+
+Quanto mais você avança nas áreas devastadas, mais os monstros da sua mente ganham forma...`;
+
+    let currentText = "";
+    let textIndex = 0;
+    const typingSpeed = 35; // velocidade (quanto menor, mais rápido)
+
+    function typeWriter() {
+      if (textIndex < introText.length) {
+        currentText += introText.charAt(textIndex);
+        document.getElementById('intro-text').innerHTML = currentText.replace(/\n/g, '<br>');
+        textIndex++;
+        setTimeout(typeWriter, typingSpeed);
+      } else {
+        // Quando terminar de digitar, inicia o jogo automaticamente
+        setTimeout(() => {
+          startActualGame();
+        }, 1500);
+      }
     }
 
-    setInterval(createAsh, 80);
-
-    // Funções dos botões
-    function startGame() {
-      alert("🚶 Iniciando o jogo...\n\n(Aqui você pode redirecionar para o game.js ou outra página)");
-      // window.location.href = "game.html"; // descomente quando tiver o jogo
+    // ==================== INICIAR JOGO ====================
+    function startActualGame() {
+      document.getElementById('intro').style.display = 'none';
+      document.getElementById('game').style.display = 'block';
+      gameRunning = true;
+      initGame();
     }
 
-    function showSettings() {
-      alert("⚙️ Configurações\n\n• Volume\n• Sensibilidade do Mouse\n• Qualidade Gráfica\n• Legendas");
+    function skipIntro() {
+      startActualGame();
     }
 
-    function showCredits() {
-      alert("📜 REFERÊNCIAS\n\nDesenvolvido como demonstração.\n\nInspirado em:\n• Darkwood\n• Pathologic\n• The Stanley Parable\n\nMúsica e atmosfera: Ambient horror");
+    function initGame() {
+      setInterval(gameLoop, 1000/60);
+      pulseHeart();
     }
 
-    // Efeito de batimento sutil no título
-    let title = document.querySelector('h1');
-    setInterval(() => {
-      title.style.transform = 'scale(1.02)';
-      setTimeout(() => title.style.transform = 'scale(1)', 200);
-    }, 3000);
+    // Pulsação do coração (vida)
+    function pulseHeart() {
+      const heart = document.getElementById('life-container');
+      setInterval(() => {
+        heart.style.transform = `scale(${heartPulse})`;
+        heartPulse = heartPulse === 1 ? 1.25 : 1;
+      }, 800);
+    }
+
+    // Loop principal do jogo
+    function gameLoop() {
+      if (!gameRunning) return;
+
+      // Movimento
+      if (keys['w'] || keys['W']) playerY -= 4;
+      if (keys['s'] || keys['S']) playerY += 4;
+      if (keys['a'] || keys['A']) playerX -= 4;
+      if (keys['d'] || keys['D']) playerX += 4;
+
+      draw();
+    }
+
+    function draw() {
+      // Fundo
+      ctx.fillStyle = '#1a1a10';
+      ctx.fillRect(0, 0, 800, 600);
+
+      // Terra devastada
+      ctx.fillStyle = '#2a2a15';
+      ctx.fillRect(0, 0, 800, 600);
+
+      // Árvores/obstáculos
+      ctx.fillStyle = '#0a0a05';
+      ctx.fillRect(120, 80, 45, 95);
+      ctx.fillRect(580, 180, 40, 110);
+      ctx.fillRect(280, 420, 55, 85);
+
+      // Jogador (pixel)
+      ctx.fillStyle = '#ffcc88';
+      ctx.fillRect(playerX, playerY, 18, 26);        // corpo
+      ctx.fillStyle = '#aa6644';
+      ctx.fillRect(playerX+4, playerY-8, 11, 11);   // cabeça
+
+      // Brilho da lanterna
+      ctx.fillStyle = 'rgba(255, 160, 40, 0.35)';
+      ctx.fillRect(playerX-30, playerY-25, 65, 65);
+    }
+
+    // Controles
+    const keys = {};
+    window.addEventListener('keydown', e => keys[e.key] = true);
+    window.addEventListener('keyup', e => keys[e.key] = false);
+
+    // Inicia o efeito de digitação automaticamente
+    window.onload = () => {
+      typeWriter();
+    };
   </script>
 </body>
 </html>
