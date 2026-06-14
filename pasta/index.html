@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cinzas da Sanidade</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      overflow: hidden;
+      background: #000;
+      color: #ddd;
+      height: 100vh;
+    }
+
+    /* MENU */
+    #menu {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      z-index: 10;
+    }
+    #background {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: url('https://images.unsplash.com/photo-1567448903605-08e79b3ed079?q=80&w=1332&auto=format&fit=crop') center/cover no-repeat;
+      filter: brightness(0.55) contrast(1.2) saturate(0.75);
+      z-index: 1;
+    }
+    .overlay {
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(10,10,10,0.95));
+      z-index: 2;
+    }
+    .content {
+      position: relative;
+      z-index: 3;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+    }
+    h1 {
+      font-size: 5rem;
+      letter-spacing: 8px;
+      text-shadow: 0 0 20px #000, 0 0 40px #330000;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      font-size: 1.6rem;
+      margin-bottom: 60px;
+      opacity: 0.9;
+    }
+    .menu-btn {
+      padding: 20px 60px;
+      margin: 15px;
+      font-size: 1.8rem;
+      background: rgba(25, 25, 25, 0.95);
+      border: 3px solid #666;
+      color: #ddd;
+      cursor: pointer;
+      width: 380px;
+      transition: all 0.4s ease;
+      text-transform: uppercase;
+      letter-spacing: 4px;
+    }
+    .menu-btn:hover {
+      border-color: #ff4444;
+      background: #111;
+      transform: scale(1.1);
+      box-shadow: 0 0 30px rgba(255, 68, 68, 0.8);
+    }
+
+    /* INTRO */
+    #intro {
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: #111;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      z-index: 20;
+      padding: 40px;
+      text-align: center;
+    }
+    #intro-text {
+      max-width: 720px;
+      line-height: 1.8;
+      font-size: 1.35rem;
+      min-height: 280px;
+    }
+
+    /* JOGO */
+    #game-container {
+      display: none;
+      position: absolute;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+    }
+    #life {
+      position: absolute;
+      top: 25px;
+      left: 25px;
+      font-size: 2.8rem;
+      z-index: 30;
+      transition: transform 0.4s;
+    }
+    canvas {
+      image-rendering: pixelated;
+      border: 4px solid #222;
+      display: block;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- MENU -->
+  <div id="menu">
+    <div id="background"></div>
+    <div class="overlay"></div>
+    <div class="content">
+      <h1>CINZAS DA SANIDADE</h1>
+      <p class="subtitle">Uma caminhada pela morte do mundo</p>
+      
+      <button class="menu-btn" onclick="startJourney()">INICIAR JORNADA</button>
+      <button class="menu-btn" onclick="showSettings()">CONFIGURAÇÕES</button>
+      <button class="menu-btn" onclick="showCredits()">REFERÊNCIAS</button>
+    </div>
+  </div>
+
+  <!-- INTRODUÇÃO (Light Novel) -->
+  <div id="intro">
+    <h2 style="color:#f66; margin-bottom:40px;">Capítulo 1 - As Cinzas</h2>
+    <div id="intro-text"></div>
+    <button onclick="skipIntro()" style="margin-top:40px; padding:15px 50px; font-size:1.3rem; background:#300; border:2px solid #f44; color:white;">PULAR</button>
+  </div>
+
+  <!-- JOGO -->
+  <div id="game-container">
+    <div id="life">❤️</div>
+    <canvas id="canvas" width="800" height="600"></canvas>
+  </div>
+
+  <script>
+    // ==================== VARIÁVEIS ====================
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    
+    let playerX = 380, playerY = 280;
+    let gameRunning = false;
+
+    // Imagens (substitua pelos seus arquivos do Piskel)
+    const backgroundImg = new Image();
+    backgroundImg.src = "dungeon-background.png";
+
+    const playerImg = new Image();
+    playerImg.src = "personagem.png";
+
+    // ==================== INTRO ====================
+    const introText = `O mundo acabou não com fogo ou água, mas com silêncio.
+
+Você caminha por florestas mortas, céus cinzentos de fuligem e terra rachada.
+
+Sua lanterna é a única luz que resta.
+
+Quanto mais você avança nas áreas devastadas, mais os monstros da sua mente ganham forma...`;
+
+    let currentText = "";
+    let textIndex = 0;
+
+    function typeWriter() {
+      if (textIndex < introText.length) {
+        currentText += introText.charAt(textIndex);
+        document.getElementById('intro-text').innerHTML = currentText.replace(/\n/g, '<br>');
+        textIndex++;
+        setTimeout(typeWriter, 45);
+      } else {
+        setTimeout(() => {
+          document.getElementById('intro').style.display = 'none';
+          document.getElementById('game-container').style.display = 'block';
+          startGame();
+        }, 1200);
+      }
+    }
+
+    // ==================== MENU ====================
+    function startJourney() {
+      document.getElementById('menu').style.display = 'none';
+      document.getElementById('intro').style.display = 'flex';
+      typeWriter();
+    }
+
+    function skipIntro() {
+      document.getElementById('intro').style.display = 'none';
+      document.getElementById('game-container').style.display = 'block';
+      startGame();
+    }
+
+    function showSettings() {
+      alert("⚙️ Configurações em breve...");
+    }
+
+    function showCredits() {
+      alert("📜 REFERÊNCIAS\n\nInspirado em terror psicológico e walk simulators.");
+    }
+
+    // ==================== JOGO ====================
+    function startGame() {
+      gameRunning = true;
+      pulseHeart();
+      setInterval(gameLoop, 1000/60);
+    }
+
+    function pulseHeart() {
+      const heart = document.getElementById('life');
+      setInterval(() => {
+        heart.style.transform = heart.style.transform === 'scale(1.3)' ? 'scale(1)' : 'scale(1.3)';
+      }, 700);
+    }
+
+    function gameLoop() {
+      if (!gameRunning) return;
+
+      if (keys['w'] || keys['W']) playerY -= 4;
+      if (keys['s'] || keys['S']) playerY += 4;
+      if (keys['a'] || keys['A']) playerX -= 4;
+      if (keys['d'] || keys['D']) playerX += 4;
+
+      draw();
+    }
+
+    function draw() {
+      // Fundo
+      if (backgroundImg.complete) {
+        ctx.drawImage(backgroundImg, 0, 0, 800, 600);
+      } else {
+        ctx.fillStyle = '#1a1a10';
+        ctx.fillRect(0, 0, 800, 600);
+      }
+
+      // Jogador
+      if (playerImg.complete) {
+        ctx.drawImage(playerImg, playerX, playerY, 32, 32);
+      } else {
+        ctx.fillStyle = '#ffcc88';
+        ctx.fillRect(playerX, playerY, 24, 32);
+      }
+    }
+
+    // Controles
+    const keys = {};
+    window.addEventListener('keydown', e => keys[e.key] = true);
+    window.addEventListener('keyup', e => keys[e.key] = false);
+  </script>
+</body>
+</html>
